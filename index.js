@@ -1,4 +1,5 @@
 const express=require('express')
+const fs=require('fs')
 
 const PORT=8080
 
@@ -70,7 +71,69 @@ app.delete("/users/delete/:id",(req,res)=>{
 
     res.send("User deleted successfully")
 })
+const products=JSON.parse(fs.readFileSync('data.json','utf-8'))
+//console.log(products)
 
+app.get('/products',(req,res)=>{
+
+    res.send(products)
+})
+
+app.post('/products/add',(req,res)=>{
+    const product=req.body
+    products.push(product)
+    fs.writeFileSync('data.json',JSON.stringify(products),'utf-8')
+
+    res.status(200).json(product)
+})
+//UPDATE ALWAYS FOLLOW UPSERT CONCEPT -- Update and Insert
+app.put('/products/update-complete',(req,res)=>{
+    const productToUpdate=req.body
+    const productId=products.findIndex((product)=>product.id===productToUpdate.id)
+
+      if(productId===-1)
+        products.push(productToUpdate)
+    else
+    {
+        products[productId]=productToUpdate
+    }
+    fs.writeFileSync("data.json",JSON.stringify(products),'utf-8')
+    res.status(200).json(productToUpdate)
+})
+
+app.patch('/products/update-field',(req,res)=>{
+    const productToUpdate=req.body
+    const productId=products.findIndex((product)=>product.id===productToUpdate.id)
+//    console.log("Product id is -------"+productId)
+    if(productId===-1)
+        res.status(404)
+    else
+    {
+    products[productId]=productToUpdate
+    }
+    fs.writeFileSync("data.json",JSON.stringify(products),'utf-8')
+    res.status(200).json(productToUpdate)
+    //console.log(productId)
+ 
+})
+
+app.delete('/products/delete',(req,res)=>{
+    const productId=req.body.id
+    const productIndexDelete=products.findIndex((product)=>product.id==productId)
+     //console.log("Product id is "+productIndexDelete + " "+productId)
+    if(productIndexDelete===-1)
+    {
+        res.status(404)
+    }
+    else
+    {
+    products.splice(productIndexDelete,1)
+    }
+    fs.writeFileSync("data.json",JSON.stringify(products),'utf-8')
+    res.status(200).json(productId)
+    //console.log(productId)
+ 
+})
 app.listen(PORT,(req,res)=>{
    
     console.log('Server has started')
