@@ -9,6 +9,24 @@ const users=[{
 const app=express()
 app.use(express.json())
 
+//Add an auth middleware, so that request before hitting 
+// the server check if that the user is authenticated
+const authenticate=(req,res,next)=>{
+    const password=req.headers.password
+    console.log(password)
+    if(password==="test")
+        {
+            next()
+        }
+    else
+    {
+        res.status(401).json({error:"Your not authorized"})
+    }
+}
+
+//This is how i say use this middleware
+//app.use(authenticate)
+
 app.get("/",(req,res)=>{
     res.send("Hello Express")
 })
@@ -31,7 +49,7 @@ app.get("/users",(req,res)=>{
     res.send(users)
 })
 
-app.post("/users/add",(req,res)=>{
+app.post("/users/add",authenticate,(req,res)=>{
     const newUser=req.body
    // console.log(newUser)
    if(!newUser.name)
